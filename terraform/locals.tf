@@ -1,15 +1,18 @@
 locals {
-  secret_value = jsondecode(data.aws_secretsmanager_secret_version.gitlab_token.secret_string)
-}
+  project_cfg = {
+    prefix              = var.project_prefix
+    pipeline_name       = var.pipeline_name
+    cost_center         = var.cost_center
+    model_approval_name = var.lambda_repository_suffix
+  }
 
-locals {
-  project_cfg = yamldecode(file("${path.module}/../../project.yaml"))
-}
+  model_cfg = {
+    register = {
+      name = var.model_package_group_name
+    }
+  }
 
-locals {
-  model_cfg = yamldecode(file("${path.module}/../../src/pipelines/sagemaker/config/model.yaml"))
-}
+  lambda_trigger_name = var.image_name != "" ? var.image_name : "${local.project_cfg["prefix"]}-${local.project_cfg["model_approval_name"]}"
 
-locals {
-  lambda_trigger_name = var.image_name != "" ? var.image_name : "${local.project_cfg["prefix"]}-${local.project_cfg["model_approval_lambda"]}"
+  use_latest_ecr_image = var.lambda_image_uri == null || trim(var.lambda_image_uri) == ""
 }
