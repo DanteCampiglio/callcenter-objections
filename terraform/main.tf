@@ -11,8 +11,9 @@ resource "aws_ecr_repository" "model_approval_lambda" {
   }
 }
 
-# Get the latest image from ECR
+# Get the latest image from ECR when no explicit URI is provided
 data "aws_ecr_image" "model_approval_lambda" {
+  count           = local.use_latest_ecr_image ? 1 : 0
   repository_name = aws_ecr_repository.model_approval_lambda.name
   most_recent     = true
 }
@@ -25,7 +26,7 @@ resource "aws_cloudwatch_event_rule" "model_deploy_event_rule" {
     source        = ["aws.sagemaker"]
     "detail-type" = ["SageMaker Model Package State Change"]
     detail = {
-      ModelPackageGroupName = ["${local.project_cfg["prefix"]}-${local.model_cfg["register"]["name"]}"]
+      ModelPackageGroupName = [local.model_cfg["register"]["name"]]
       ModelApprovalStatus   = ["Approved"]
     }
   })
@@ -60,7 +61,7 @@ resource "aws_lambda_function" "model_approval_lambda" {
   function_name = "${local.project_cfg["prefix"]}-${local.project_cfg["pipeline_name"]}-gl-trigger"
   description   = "To trigger the GitHub Workflow"
   package_type  = "Image"
-  image_uri     = data.aws_ecr_image.model_approval_lambda.image_uri
+  image_uri     = local.use_latest_ecr_image ? data.aws_ecr_image.model_approval_lambda[0].image_uri : var.lambda_image_uri
   role          = aws_iam_role.lambda_execution_role.arn
   timeout       = 900
   architectures = ["arm64"]

@@ -7,11 +7,11 @@ terraform {
   }
   backend "s3" {
     bucket               = "dss-tf-states"
-    key                  = "se_churn_ar/terraform.tfstate"
+    key                  = "contact_center/terraform.tfstate"
     region               = "eu-central-1"
     dynamodb_table       = "dss-tf-states-lock"
     encrypt              = true
-    workspace_key_prefix = "workspaces/se_churn_ar"
+    workspace_key_prefix = "workspaces/contact_center"
   }
 }
 

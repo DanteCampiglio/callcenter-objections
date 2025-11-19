@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 from collections import Counter
 import unicodedata
+from pathlib import Path
 
 # --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="Tablero de Llamadas", layout="wide")
@@ -36,7 +37,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- CARGA DE DATOS ---
-df = pd.read_excel(r"C:\Users\s1246678\syngenta-callcenter\Syngena_callcenter.xlsx")
+data_path = Path(__file__).with_name("final_call_analysis.csv")
+
+try:
+    df = pd.read_csv(data_path)
+except FileNotFoundError:
+    st.error(
+        "No se encontró el archivo 'final_call_analysis.csv'. "
+        "Asegúrate de colocarlo en el mismo directorio que este script."
+    )
+    st.stop()
 
 # Normalizar nombres de columnas
 df.columns = [
